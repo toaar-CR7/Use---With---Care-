@@ -19,7 +19,9 @@ The challenge is not AI itself, but uninformed and careless AI usage.
 
 ---
 
-## Solution Overview
+## Solution and Solution Overview
+
+# Our solution: UseWithCare website
 
 Use With Care acts as an AI auditor rather than an AI replacement.
 
@@ -56,6 +58,7 @@ Each evaluation includes a clear explanation and a recommendation/advice along w
 - HTML
 - Tailwind CSS
 - JavaScript
+- Firebase Authentication (Google Sign-In)
 
 ### Backend
 - Netlify Serverless Functions
@@ -75,7 +78,7 @@ Each evaluation includes a clear explanation and a recommendation/advice along w
 - Google Gemini for task analysis and AI suitability evaluation
 - Google Generative AI SDK for secure server-side AI integration
 - Responsible AI design principles aligned with Google’s AI ethics framework
-
+- Firebase authentication to create a login system for personalized and proper usage of the website. 
 ---
 
 ## Impact
@@ -102,6 +105,13 @@ Use With Care encourages:
 
 - **Learning-Oriented Guidance**  
   When AI usage is discouraged, provide constructive suggestions on how users can approach the task manually, promoting learning and independent problem-solving.
+  
+- **User Audit History & Data Storage**  
+  Enable secure storage of past AI audit results to allow users to review previous decisions, track learning progress, and reflect on responsible AI usage patterns over time.
+
+- **Personalized AI Usage Insights**  
+  Analyze historical audit data to provide users with insights into their AI usage behavior and suggest improvements towards a more  thoughtful AI adoption.
+
 
 ---
 
