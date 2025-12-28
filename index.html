@@ -28,7 +28,25 @@
         }
     </style>
 </head>
+
 <body class="text-white font-sans min-h-screen flex items-center justify-center p-6">
+    
+    <!-- LOGIN OVERLAY -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 glass flex items-center justify-center p-6 text-center">
+        <div class="bg-slate-800 p-10 rounded-[2rem] border border-white/10 w-full max-w-sm shadow-2xl">
+            <h2 class="text-3xl font-bold mb-4">Use With Care</h2>
+            <p class="text-slate-400 mb-8 text-sm">Sign in with Google to start auditing.</p>
+            
+            <button id="signInBtn" class="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-bold hover:bg-slate-200 transition">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-5" alt="Google">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <button id="logoutBtn" class="hidden absolute top-5 right-5 z-40 text-xs bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 transition">
+        Logout
+    </button>
     
     <div class="glow top-10 left-10"></div>
     <div class="glow bottom-10 right-10" style="background: rgba(236, 72, 153, 0.2);"></div>
@@ -47,10 +65,10 @@
 
             <div class="glass p-6 rounded-3xl space-y-4">
                 <textarea id="userInput" placeholder="I want to use AI to write my legal contract..." 
-                    class="w-full h-32 bg-black/20 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-600"></textarea>
+                    class="w-full h-32 bg-black/20 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-600 text-white"></textarea>
                 
                 <div class="flex items-center gap-4">
-                    <button id="checkBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 py-4 rounded-2xl font-bold shadow-lg shadow-purple-500/20 active:scale-95 transition-all">
+                    <button id="checkBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 py-4 rounded-2xl font-bold shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50">
                         Evaluate AI Suitability
                     </button>
                 </div>
@@ -61,7 +79,9 @@
             <div class="glass p-8 rounded-[2rem] border-t-2 border-purple-500/50">
                 <div class="flex items-center space-x-3 mb-6">
                     <div id="statusIcon" class="w-8 h-8 rounded-full flex items-center justify-center bg-green-500/20 text-green-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
                     </div>
                     <span id="status" class="uppercase font-black tracking-widest text-sm">Safe to proceed</span>
                 </div>
@@ -80,14 +100,49 @@
 
     </div>
 
-    <script>
+    <!-- FIREBASE AUTH ONLY (NO FIRESTORE) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBRmZqYacFiKkk6eEb1iIqQsG4CcWp2EFY",
+            authDomain: "use-with-care-c8f91.firebaseapp.com",
+            projectId: "use-with-care-c8f91",
+            storageBucket: "use-with-care-c8f91.firebasestorage.app",
+            messagingSenderId: "31850196436",
+            appId: "1:31850196436:web:59470565feae0766cd3a41"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            const overlay = document.getElementById('loginOverlay');
+            const logout = document.getElementById('logoutBtn');
+            if (user) {
+                currentUser = user;
+                overlay.classList.add('hidden');
+                logout.classList.remove('hidden');
+            } else {
+                currentUser = null;
+                overlay.classList.remove('hidden');
+                logout.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('signInBtn').onclick = () => signInWithPopup(auth, provider);
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
         const btn = document.getElementById('checkBtn');
         btn.onclick = async () => {
             const input = document.getElementById('userInput').value;
-            if (!input) return;
+            if (!input || !currentUser) return;
 
-            btn.innerText = "Auditing Task...";
-            btn.disabled = true;
+            btn.innerText = "Auditing...";
 
             try {
                 const res = await fetch('/api/check-ai', {
@@ -97,33 +152,17 @@
                 const data = await res.json();
 
                 document.getElementById('result').classList.remove('hidden');
-                document.getElementById('status').innerText = data.status || "Audit Complete";
-                document.getElementById('advice').innerText = data.advice || "No specific risks detected.";
-                document.getElementById('recommendation').innerText = data.tool || "General AI";
-                
-                // Color coding based on status
-                // Color coding based on your 3 specific labels
-                const icon = document.getElementById('statusIcon');
-                const statusEl = document.getElementById('status');
-                const statusText = data.status.toUpperCase();
+                document.getElementById('status').innerText = data.status;
+                document.getElementById('advice').innerText = data.advice;
+                document.getElementById('recommendation').innerText = data.tool;
 
-                if (statusText === 'DO NOT USE AI') {
-                    icon.className = "w-8 h-8 rounded-full flex items-center justify-center bg-red-500/20 text-red-400";
-                    statusEl.className = "uppercase font-black tracking-widest text-sm text-red-400";
-                } else if (statusText === 'ONLY USE SLIGHT AI ASSISTANCE') {
-                    icon.className = "w-8 h-8 rounded-full flex items-center justify-center bg-yellow-500/20 text-yellow-400";
-                    statusEl.className = "uppercase font-black tracking-widest text-sm text-yellow-400";
-                } else {
-                    icon.className = "w-8 h-8 rounded-full flex items-center justify-center bg-green-500/20 text-green-400";
-                    statusEl.className = "uppercase font-black tracking-widest text-sm text-green-400";
-                }
-
-            } catch (err) {
-                alert("The auditor is busy. Please try again in 10 seconds.");
+            } catch {
+                alert("The auditor is busy. Please try again.");
             }
+
             btn.innerText = "Evaluate AI Suitability";
-            btn.disabled = false;
         };
     </script>
+
 </body>
 </html>
