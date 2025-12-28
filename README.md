@@ -136,6 +136,12 @@ The current implementation demonstrates compatibility with Google Gemini.
 ## Working website url
 https://usewithcare.netlify.app/
 
+---
+
+## Link to our video demo of the running app:
+It is recommended to try our our website and you can see our video here, for a few more details. 
+https://go.screenpal.com/watch/cTltbHnYSk7
+
 
 ## Final Statement
 
