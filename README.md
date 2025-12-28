@@ -21,7 +21,7 @@ The challenge is not AI itself, but uninformed and careless AI usage.
 
 ## Solution and Solution Overview
 
-# Our solution: UseWithCare website
+- Our solution: UseWithCare website
 
 Use With Care acts as an AI auditor rather than an AI replacement.
 
