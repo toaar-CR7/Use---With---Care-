@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Use With Care | AI Auditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #2d1b4e, #1a1a2e, #0f0c29);
+            overflow-x: hidden;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+        .glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(139, 92, 246, 0.3);
+            filter: blur(100px);
+            border-radius: 50%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="text-white font-sans min-h-screen flex items-center justify-center p-6">
+    
+    <div class="glow top-10 left-10"></div>
+    <div class="glow bottom-10 right-10" style="background: rgba(236, 72, 153, 0.2);"></div>
+
+    <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        
+        <div class="space-y-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center font-bold text-xl">U</div>
+                <h1 class="text-3xl font-bold tracking-tight">Use With Care</h1>
+            </div>
+            
+            <p class="text-slate-400 text-lg leading-relaxed">
+                Enter your task or topic. Our AI auditor will analyze if it's safe to use AI for this specific case.
+            </p>
+
+            <div class="glass p-6 rounded-3xl space-y-4">
+                <textarea id="userInput" placeholder="I want to use AI to write my legal contract..." 
+                    class="w-full h-32 bg-black/20 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-600"></textarea>
+                
+                <div class="flex items-center gap-4">
+                    <button id="checkBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 py-4 rounded-2xl font-bold shadow-lg shadow-purple-500/20 active:scale-95 transition-all">
+                        Evaluate AI Suitability
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="result" class="hidden transition-all duration-500">
+            <div class="glass p-8 rounded-[2rem] border-t-2 border-purple-500/50">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div id="statusIcon" class="w-8 h-8 rounded-full flex items-center justify-center bg-green-500/20 text-green-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    </div>
+                    <span id="status" class="uppercase font-black tracking-widest text-sm">Safe to proceed</span>
+                </div>
+
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold">Recommendation</h2>
+                    <p id="advice" class="text-slate-300 leading-relaxed"></p>
+                    
+                    <div class="pt-6 border-t border-white/10">
+                        <p class="text-xs text-slate-500 uppercase tracking-widest mb-2 font-bold">Recommended Tool</p>
+                        <div id="recommendation" class="inline-block bg-white/5 px-4 py-2 rounded-full border border-white/10 text-purple-300 font-mono"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const btn = document.getElementById('checkBtn');
+        btn.onclick = async () => {
+            const input = document.getElementById('userInput').value;
+            if (!input) return;
+
+            btn.innerText = "Auditing Task...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/check-ai', {
+                    method: 'POST',
+                    body: JSON.stringify({ text: input })
+                });
+                const data = await res.json();
+
+                document.getElementById('result').classList.remove('hidden');
+                document.getElementById('status').innerText = data.status || "Audit Complete";
+                document.getElementById('advice').innerText = data.advice || "No specific risks detected.";
+                document.getElementById('recommendation').innerText = data.tool || "General AI";
+                
+                // Color coding based on status
+                // Color coding based on your 3 specific labels
+                const icon = document.getElementById('statusIcon');
+                const statusEl = document.getElementById('status');
+                const statusText = data.status.toUpperCase();
+
+                if (statusText === 'DO NOT USE AI') {
+                    icon.className = "w-8 h-8 rounded-full flex items-center justify-center bg-red-500/20 text-red-400";
+                    statusEl.className = "uppercase font-black tracking-widest text-sm text-red-400";
+                } else if (statusText === 'ONLY USE SLIGHT AI ASSISTANCE') {
+                    icon.className = "w-8 h-8 rounded-full flex items-center justify-center bg-yellow-500/20 text-yellow-400";
+                    statusEl.className = "uppercase font-black tracking-widest text-sm text-yellow-400";
+                } else {
+                    icon.className = "w-8 h-8 rounded-full flex items-center justify-center bg-green-500/20 text-green-400";
+                    statusEl.className = "uppercase font-black tracking-widest text-sm text-green-400";
+                }
+
+            } catch (err) {
+                alert("The auditor is busy. Please try again in 10 seconds.");
+            }
+            btn.innerText = "Evaluate AI Suitability";
+            btn.disabled = false;
+        };
+    </script>
+</body>
+</html>
